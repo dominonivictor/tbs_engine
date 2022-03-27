@@ -1,9 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // ENUMS
-type DMG_TYPES int8
+type DMG_TYPES int
 
 const (
 	DIRECT_DMG_TYPE DMG_TYPES = iota
@@ -11,55 +14,90 @@ const (
 	NONE_DMG_TYPE
 )
 
-type SKILL_TYPES int8
+type SKILL_TYPES int
 
 const (
 	ATK_SKILL_TYPE SKILL_TYPES = iota
 	BUFF_SKILL_TYPE
 )
 
+type BUFF_TYPES int
+
+const (
+	STAT_BUFF_TYPE BUFF_TYPES = iota
+	DOT_OR_HOT_BUFF_TYPE
+	PASSIVE_BUFF_TYPE
+)
+
+type STATS int
+
+const (
+	ATK_STAT STATS = iota
+	DEF_STAT_STATS
+)
+
 // STRUCTS
 
-type Skill struct {
-	name        string
-	value       int8
+type Buff struct {
+	name         string
+	value        int
+	timer        int
+	buffType     BUFF_TYPES
+	statAffected STATS
+}
+
+type Dmg struct {
+	value       int
 	dmgType     DMG_TYPES
 	isFlatValue bool
-	skillType   SKILL_TYPES
+}
+
+type Skill struct {
+	name      string
+	skillType SKILL_TYPES
+	dmg       Dmg
+	buff      Buff
 }
 
 type Stats struct {
-	hp    int8
-	maxHP int8
-	atk   int8
-	def   int8
+	hp    int
+	maxHP int
+	atk   int
+	def   int
 }
 
+//type Status struct {
+//	name  string
+//	timer int
+//	value
+//}
+
 type Actor struct {
-	name  string
-	stats Stats
+	name     string
+	stats    Stats
+	statuses map[string]*Buff
 }
 
 // FUNCTIONS
-func validateDmg(dmg int8) int8 {
+func validateDmg(dmg int) int {
 	if dmg < 0 {
-		return int8(0)
+		return int(0)
 	}
 	return dmg
 }
 
-func dealDmg(target *Actor, dmg int8) {
+func dealDmg(target *Actor, dmg int) {
 	if target.stats.hp-dmg < 0 {
 		target.stats.hp = 0
 	}
 	target.stats.hp -= dmg
 }
 
-func chooseAtkValue(s Skill, owner *Actor) int8 {
-	if s.isFlatValue {
-		return s.value
+func chooseAtkValue(s Skill, owner *Actor) int {
+	if s.dmg.isFlatValue {
+		return s.dmg.value
 	}
-	return owner.stats.atk + s.value
+	return owner.stats.atk + s.dmg.value
 
 }
 
@@ -78,7 +116,7 @@ func actAtkTrue(s Skill, owner, target *Actor) {
 
 func actAtk(s Skill, owner, target *Actor) {
 	var fun func(Skill, *Actor, *Actor)
-	switch s.dmgType {
+	switch s.dmg.dmgType {
 	case DIRECT_DMG_TYPE:
 		fun = actAtkDirect
 	case TRUE_DMG_TYPE:
@@ -88,12 +126,54 @@ func actAtk(s Skill, owner, target *Actor) {
 	fun(s, owner, target)
 }
 
+func addStatus(target *Actor, status *Buff) {
+	currStatus, found := target.statuses[status.name]
+
+	if !found {
+		target.statuses[status.name] = status
+	} else {
+		currStatus.timer = int(math.Max(float64(currStatus.timer), float64(status.timer)))
+	}
+}
+
+func applyBuff(b Buff, target *Actor) {
+	switch b.statAffected {
+	case ATK_STAT:
+		target.stats.atk += b.value
+	}
+}
+
+func applyBuffStat(b Buff, owner, target *Actor) {
+	status := &b
+	addStatus(target, status)
+	applyBuff(b, target)
+}
+
+func actBuff(s Skill, owner, target *Actor) {
+	var fun func(Buff, *Actor, *Actor)
+	b := s.buff
+	switch b.buffType {
+	case STAT_BUFF_TYPE:
+		fun = applyBuffStat
+	}
+	fun(b, owner, target)
+}
+
+func defaultAct(s Skill, owner, target *Actor) {
+	fmt.Printf("Defaulting to dummy Act, skillType (%v) is not mapped in chooseSkillFunc", s.skillType)
+}
+
 func chooseSkillFunc(s Skill) func(Skill, *Actor, *Actor) {
 	var fun func(Skill, *Actor, *Actor)
 	switch s.skillType {
 	case ATK_SKILL_TYPE:
 		fun = actAtk
+	case BUFF_SKILL_TYPE:
+		fun = actBuff
+	default:
+		fun = defaultAct
 	}
+
 	return fun
 }
 
@@ -104,4 +184,9 @@ func act(s Skill, owner, target *Actor) {
 
 func main() {
 	fmt.Println("Initializing...")
+	a := &Actor{statuses: make(map[string]*Buff)}
+	s := &Buff{name: "status1", timer: 1}
+	addStatus(a, s)
+	fmt.Printf("Actor: %+v, status: %+v", a, s)
+
 }
