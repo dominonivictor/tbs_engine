@@ -60,23 +60,23 @@ func TestAtkSkills(t *testing.T) {
 	})
 }
 
-func TestStatus(t *testing.T) {
+func TestStatusStatBuff(t *testing.T) {
 	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2}
 	owner := &Actor{name: "a1", stats: stat}
-	target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
-	t.Run("Status Effect, buff", func(t *testing.T) {
-		buff := Buff{
-			name:         "b1",
-			buffType:     STAT_BUFF_TYPE,
-			timer:        2,
-			value:        -2,
-			statAffected: ATK_STAT,
-		}
-		s := Skill{
-			name:      "s1",
-			skillType: BUFF_SKILL_TYPE,
-			buff:      buff,
-		}
+	buff := Buff{
+		name:         "b1",
+		buffType:     STAT_BUFF_TYPE,
+		timer:        2,
+		value:        -2,
+		statAffected: ATK_STAT,
+	}
+	s := Skill{
+		name:      "s1",
+		skillType: BUFF_SKILL_TYPE,
+		buff:      buff,
+	}
+	t.Run("Status Effect, check target has status", func(t *testing.T) {
+		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
 
 		act(s, owner, target)
 
@@ -85,13 +85,22 @@ func TestStatus(t *testing.T) {
 		if gotStatus != wantStatus {
 			t.Errorf("Actor status is not apropriate, got %v, want %v", gotStatus, wantStatus)
 		}
+	})
+	t.Run("Status Effect, check target has stat (de)buffed", func(t *testing.T) {
+		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
+
+		act(s, owner, target)
 
 		gotActorAtk := target.stats.atk
 		wantActorAtk := -1
 		if gotActorAtk != wantActorAtk {
 			t.Errorf("Actor atk stat is not right, got %v, want %v", gotActorAtk, wantActorAtk)
 		}
+	})
+	t.Run("Status Effect, check target has only 1 status, even if hit twice", func(t *testing.T) {
+		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
 
+		act(s, owner, target)
 		act(s, owner, target)
 
 		gotStatusesLen := len(target.statuses)
