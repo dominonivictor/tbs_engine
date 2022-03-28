@@ -33,7 +33,7 @@ type STATS int
 
 const (
 	ATK_STAT STATS = iota
-	DEF_STAT_STATS
+	DEF_STAT
 )
 
 // STRUCTS
@@ -44,6 +44,7 @@ type Buff struct {
 	timer        int
 	buffType     BUFF_TYPES
 	statAffected STATS
+	passiveId    string
 }
 
 type Dmg struct {
@@ -66,12 +67,6 @@ type Stats struct {
 	def   int
 }
 
-//type Status struct {
-//	name  string
-//	timer int
-//	value
-//}
-
 type Actor struct {
 	name     string
 	stats    Stats
@@ -93,7 +88,7 @@ func dealDmg(target *Actor, dmg int) {
 	target.stats.hp -= dmg
 }
 
-func chooseAtkValue(s Skill, owner *Actor) int {
+func calculateAtkValue(s Skill, owner *Actor) int {
 	if s.dmg.isFlatValue {
 		return s.dmg.value
 	}
@@ -102,7 +97,7 @@ func chooseAtkValue(s Skill, owner *Actor) int {
 }
 
 func actAtkDirect(s Skill, owner, target *Actor) {
-	atk := chooseAtkValue(s, owner)
+	atk := calculateAtkValue(s, owner)
 	def := target.stats.def
 	dmg := atk - def
 	dmg = validateDmg(dmg)
@@ -110,7 +105,7 @@ func actAtkDirect(s Skill, owner, target *Actor) {
 }
 
 func actAtkTrue(s Skill, owner, target *Actor) {
-	dmg := chooseAtkValue(s, owner)
+	dmg := calculateAtkValue(s, owner)
 	dealDmg(target, dmg)
 }
 
@@ -136,17 +131,19 @@ func addStatus(target *Actor, status *Buff) {
 	}
 }
 
-func applyBuff(b Buff, target *Actor) {
+func applyBuffStat(b Buff, target *Actor) {
 	switch b.statAffected {
 	case ATK_STAT:
 		target.stats.atk += b.value
+	case DEF_STAT:
+		target.stats.def += b.value
 	}
 }
 
-func applyBuffStat(b Buff, owner, target *Actor) {
+func actBuffStat(b Buff, owner, target *Actor) {
 	status := &b
 	addStatus(target, status)
-	applyBuff(b, target)
+	applyBuffStat(b, target)
 }
 
 func actBuff(s Skill, owner, target *Actor) {
@@ -154,32 +151,19 @@ func actBuff(s Skill, owner, target *Actor) {
 	b := s.buff
 	switch b.buffType {
 	case STAT_BUFF_TYPE:
-		fun = applyBuffStat
+		fun = actBuffStat
 	}
 	fun(b, owner, target)
 }
 
-func defaultAct(s Skill, owner, target *Actor) {
-	fmt.Printf("Defaulting to dummy Act, skillType (%v) is not mapped in chooseSkillFunc", s.skillType)
-}
-
-func chooseSkillFunc(s Skill) func(Skill, *Actor, *Actor) {
-	var fun func(Skill, *Actor, *Actor)
-	switch s.skillType {
-	case ATK_SKILL_TYPE:
-		fun = actAtk
-	case BUFF_SKILL_TYPE:
-		fun = actBuff
-	default:
-		fun = defaultAct
-	}
-
-	return fun
-}
-
 func act(s Skill, owner, target *Actor) {
-	fun := chooseSkillFunc(s)
-	fun(s, owner, target)
+	// for each non-empty component, execute proper function
+	if s.dmg != (Dmg{}) {
+		actAtk(s, owner, target)
+	}
+	if s.buff != (Buff{}) {
+		actBuff(s, owner, target)
+	}
 }
 
 func main() {

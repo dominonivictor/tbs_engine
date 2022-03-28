@@ -112,3 +112,29 @@ func TestStatusStatBuff(t *testing.T) {
 
 	})
 }
+
+func TestStatusPassiveBuff(t *testing.T) {
+	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2}
+	owner := &Actor{name: "a1", stats: stat}
+	atkSkill := Skill{
+		name:      "s1",
+		skillType: BUFF_SKILL_TYPE,
+		dmg:       Dmg{value: 10, dmgType: DIRECT_DMG_TYPE},
+	}
+	t.Run("Status Effect, passive perfect defense", func(t *testing.T) {
+		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
+		perfectDefenseSkill := Skill{
+			name: "perfect defense",
+			buff: Buff{name: "perfect defense", value: 0, timer: 1, buffType: PASSIVE_BUFF_TYPE, passiveId: "perfect_defense"},
+		}
+
+		act(perfectDefenseSkill, owner, target)
+		act(atkSkill, owner, target)
+
+		wantHP := 10
+		gotHP := target.stats.hp
+		if gotHP != wantHP {
+			t.Errorf("Actor wrong HP, got %v, want %v", gotHP, wantHP)
+		}
+	})
+}
