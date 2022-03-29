@@ -5,6 +5,16 @@ import (
 	"math"
 )
 
+// CONSTANTS
+
+var elementsTable map[ELEMENTS]map[ELEMENTS]float64 = map[ELEMENTS]map[ELEMENTS]float64{
+	FIRE: map[ELEMENTS]float64{
+		WATER: 0.5,
+	},
+	WATER: map[ELEMENTS]float64{
+		FIRE: 2,
+	}}
+
 // ENUMS
 type DMG_TYPES int
 
@@ -36,6 +46,13 @@ const (
 	DEF_STAT
 )
 
+type ELEMENTS string
+
+const (
+	FIRE  ELEMENTS = "FIRE"
+	WATER          = "WATER"
+)
+
 // STRUCTS
 
 type Buff struct {
@@ -44,7 +61,7 @@ type Buff struct {
 	timer        int
 	buffType     BUFF_TYPES
 	statAffected STATS
-	passiveId    string
+	buffId       string
 }
 
 type Dmg struct {
@@ -58,6 +75,7 @@ type Skill struct {
 	skillType SKILL_TYPES
 	dmg       Dmg
 	buff      Buff
+	element   ELEMENTS
 }
 
 type Stats struct {
@@ -71,12 +89,24 @@ type Actor struct {
 	name     string
 	stats    Stats
 	statuses map[string]*Buff
+	element  ELEMENTS
+}
+
+// METHODS
+
+func (actor *Actor) hasBuff(buffId string) bool {
+	_, ok := actor.statuses[buffId]
+	return ok
+}
+
+func (actor *Actor) canAct() bool {
+	return !actor.hasBuff("freeze")
 }
 
 // FUNCTIONS
-func validateDmg(dmg int) int {
-	if dmg < 0 {
-		return int(0)
+func validateDmg(dmg int, target *Actor) int {
+	if dmg <= 0 || target.hasBuff("perfect_defense") {
+		return 0
 	}
 	return dmg
 }
@@ -88,25 +118,37 @@ func dealDmg(target *Actor, dmg int) {
 	target.stats.hp -= dmg
 }
 
-func calculateAtkValue(s Skill, owner *Actor) int {
-	if s.dmg.isFlatValue {
-		return s.dmg.value
+func addElementalEffectiveness(dmg int, s Skill, target *Actor) int {
+	elementMultiplier, found := elementsTable[s.element][target.element]
+	if found {
+		dmgWithMultiplier := int(elementMultiplier * float64(dmg))
+		return dmgWithMultiplier
 	}
-	return owner.stats.atk + s.dmg.value
+	return dmg
+}
+
+func calculateAtkValue(s Skill, owner, target *Actor) int {
+	dmg := s.dmg.value
+	if s.dmg.isFlatValue {
+		return dmg
+	}
+	return owner.stats.atk + dmg
 
 }
 
 func actAtkDirect(s Skill, owner, target *Actor) {
-	atk := calculateAtkValue(s, owner)
+	atk := calculateAtkValue(s, owner, target)
+	atkWithBonus := addElementalEffectiveness(atk, s, target)
 	def := target.stats.def
-	dmg := atk - def
-	dmg = validateDmg(dmg)
+	dmg := atkWithBonus - def
+	dmg = validateDmg(dmg, target)
 	dealDmg(target, dmg)
 }
 
 func actAtkTrue(s Skill, owner, target *Actor) {
-	dmg := calculateAtkValue(s, owner)
-	dealDmg(target, dmg)
+	dmg := calculateAtkValue(s, owner, target)
+	dmgWithBonus := addElementalEffectiveness(dmg, s, target)
+	dealDmg(target, dmgWithBonus)
 }
 
 func actAtk(s Skill, owner, target *Actor) {
@@ -122,16 +164,16 @@ func actAtk(s Skill, owner, target *Actor) {
 }
 
 func addStatus(target *Actor, status *Buff) {
-	currStatus, found := target.statuses[status.name]
+	currStatus, found := target.statuses[status.buffId]
 
 	if !found {
-		target.statuses[status.name] = status
+		target.statuses[status.buffId] = status
 	} else {
 		currStatus.timer = int(math.Max(float64(currStatus.timer), float64(status.timer)))
 	}
 }
 
-func applyBuffStat(b Buff, target *Actor) {
+func applyBuffStat(b *Buff, target *Actor) {
 	switch b.statAffected {
 	case ATK_STAT:
 		target.stats.atk += b.value
@@ -140,29 +182,36 @@ func applyBuffStat(b Buff, target *Actor) {
 	}
 }
 
-func actBuffStat(b Buff, owner, target *Actor) {
-	status := &b
-	addStatus(target, status)
+func actBuffStat(b *Buff, owner, target *Actor) {
+	addStatus(target, b)
 	applyBuffStat(b, target)
 }
 
+func actPassiveStat(b *Buff, owner, target *Actor) {
+	addStatus(target, b)
+}
+
 func actBuff(s Skill, owner, target *Actor) {
-	var fun func(Buff, *Actor, *Actor)
-	b := s.buff
+	var fun func(*Buff, *Actor, *Actor)
+	b := &s.buff
 	switch b.buffType {
 	case STAT_BUFF_TYPE:
 		fun = actBuffStat
+	case PASSIVE_BUFF_TYPE:
+		fun = actPassiveStat
 	}
 	fun(b, owner, target)
 }
 
 func act(s Skill, owner, target *Actor) {
 	// for each non-empty component, execute proper function
-	if s.dmg != (Dmg{}) {
-		actAtk(s, owner, target)
-	}
-	if s.buff != (Buff{}) {
-		actBuff(s, owner, target)
+	if owner.canAct() {
+		if s.dmg != (Dmg{}) {
+			actAtk(s, owner, target)
+		}
+		if s.buff != (Buff{}) {
+			actBuff(s, owner, target)
+		}
 	}
 }
 

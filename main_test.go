@@ -1,14 +1,13 @@
 package main
 
 import (
-	//tbs "tbs_engine/main"
 	"testing"
 )
 
 func TestAtkSkills(t *testing.T) {
 	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2}
-	owner := &Actor{name: "a1", stats: stat}
-	target := &Actor{name: "a2", stats: stat}
+	owner := &Actor{name: "a1", stats: stat, statuses: make(map[string]*Buff)}
+	target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
 	t.Run("Direct Atk without Flat Dmg", func(t *testing.T) {
 		d := Dmg{value: 4, dmgType: DIRECT_DMG_TYPE}
 		s := Skill{name: "s1", dmg: d}
@@ -62,13 +61,14 @@ func TestAtkSkills(t *testing.T) {
 
 func TestStatusStatBuff(t *testing.T) {
 	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2}
-	owner := &Actor{name: "a1", stats: stat}
+	owner := &Actor{name: "a1", stats: stat, statuses: make(map[string]*Buff)}
 	buff := Buff{
 		name:         "b1",
 		buffType:     STAT_BUFF_TYPE,
 		timer:        2,
 		value:        -2,
 		statAffected: ATK_STAT,
+		buffId:       "minus_2_atk",
 	}
 	s := Skill{
 		name:      "s1",
@@ -81,7 +81,7 @@ func TestStatusStatBuff(t *testing.T) {
 		act(s, owner, target)
 
 		wantStatus := "b1"
-		gotStatus := target.statuses[buff.name].name
+		gotStatus := target.statuses[buff.buffId].name
 		if gotStatus != wantStatus {
 			t.Errorf("Actor status is not apropriate, got %v, want %v", gotStatus, wantStatus)
 		}
@@ -115,7 +115,7 @@ func TestStatusStatBuff(t *testing.T) {
 
 func TestStatusPassiveBuff(t *testing.T) {
 	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2}
-	owner := &Actor{name: "a1", stats: stat}
+	owner := &Actor{name: "a1", stats: stat, statuses: make(map[string]*Buff)}
 	atkSkill := Skill{
 		name:      "s1",
 		skillType: BUFF_SKILL_TYPE,
@@ -125,13 +125,63 @@ func TestStatusPassiveBuff(t *testing.T) {
 		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
 		perfectDefenseSkill := Skill{
 			name: "perfect defense",
-			buff: Buff{name: "perfect defense", value: 0, timer: 1, buffType: PASSIVE_BUFF_TYPE, passiveId: "perfect_defense"},
+			buff: Buff{name: "perfect defense", value: 0, timer: 1, buffType: PASSIVE_BUFF_TYPE, buffId: "perfect_defense"},
 		}
 
-		act(perfectDefenseSkill, owner, target)
+		act(perfectDefenseSkill, target, target)
 		act(atkSkill, owner, target)
 
 		wantHP := 10
+		gotHP := target.stats.hp
+		if gotHP != wantHP {
+			t.Errorf("Actor wrong HP, got %v, want %v", gotHP, wantHP)
+		}
+	})
+	t.Run("Status Effect, freeze makes unable to use skill", func(t *testing.T) {
+		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
+		freezeSkill := Skill{
+			name: "freeze",
+			buff: Buff{name: "freeze", value: 0, timer: 1, buffType: PASSIVE_BUFF_TYPE, buffId: "freeze"},
+		}
+
+		act(freezeSkill, target, owner)
+		act(atkSkill, owner, target)
+
+		wantHP := 10
+		gotHP := target.stats.hp
+		if gotHP != wantHP {
+			t.Errorf("Actor wrong HP, got %v, want %v", gotHP, wantHP)
+		}
+	})
+}
+
+func TestElementalEffectiveness(t *testing.T) {
+	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2}
+	owner := &Actor{name: "a1", stats: stat}
+	atkSkill := Skill{
+		name:      "s1",
+		skillType: BUFF_SKILL_TYPE,
+		dmg:       Dmg{value: 2, dmgType: DIRECT_DMG_TYPE},
+		element:   WATER,
+	}
+	t.Run("Water Element Skill is 150% effective vs Fire target, vs DIRECT_DMG", func(t *testing.T) {
+		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff), element: FIRE}
+
+		act(atkSkill, owner, target)
+
+		wantHP := 6
+		gotHP := target.stats.hp
+		if gotHP != wantHP {
+			t.Errorf("Actor wrong HP, got %v, want %v", gotHP, wantHP)
+		}
+	})
+	t.Run("Water Element Skill is 150% effective vs Fire target, vs TRUE_DMG", func(t *testing.T) {
+		atkSkill.dmg.dmgType = TRUE_DMG_TYPE
+		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff), element: FIRE}
+
+		act(atkSkill, owner, target)
+
+		wantHP := 4
 		gotHP := target.stats.hp
 		if gotHP != wantHP {
 			t.Errorf("Actor wrong HP, got %v, want %v", gotHP, wantHP)
