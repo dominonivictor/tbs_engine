@@ -24,6 +24,13 @@ const (
 	NONE_DMG_TYPE
 )
 
+type DMG_CATEGORIES int
+
+const (
+	PHYSICAL_DMG DMG_CATEGORIES = iota
+	MAGICAL_DMG
+)
+
 type SKILL_TYPES int
 
 const (
@@ -68,6 +75,7 @@ type Dmg struct {
 	value       int
 	dmgType     DMG_TYPES
 	isFlatValue bool
+	dmgCategory DMG_CATEGORIES
 }
 
 type Skill struct {
@@ -83,6 +91,8 @@ type Stats struct {
 	maxHP int
 	atk   int
 	def   int
+	mag   int
+	res   int
 }
 
 type Actor struct {
@@ -132,14 +142,32 @@ func calculateAtkValue(s Skill, owner, target *Actor) int {
 	if s.dmg.isFlatValue {
 		return dmg
 	}
-	return owner.stats.atk + dmg
+	if s.dmg.dmgCategory == PHYSICAL_DMG {
 
+		return owner.stats.atk + dmg
+	} else if s.dmg.dmgCategory == MAGICAL_DMG {
+
+		return owner.stats.mag + dmg
+	}
+	return 0
+
+}
+
+func calculateDefValue(s Skill, owner, target *Actor) int {
+	if s.dmg.dmgCategory == PHYSICAL_DMG {
+
+		return owner.stats.def
+	} else if s.dmg.dmgCategory == MAGICAL_DMG {
+
+		return owner.stats.res
+	}
+	return 0
 }
 
 func actAtkDirect(s Skill, owner, target *Actor) {
 	atk := calculateAtkValue(s, owner, target)
 	atkWithBonus := addElementalEffectiveness(atk, s, target)
-	def := target.stats.def
+	def := calculateDefValue(s, owner, target)
 	dmg := atkWithBonus - def
 	dmg = validateDmg(dmg, target)
 	dealDmg(target, dmg)

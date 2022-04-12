@@ -5,11 +5,11 @@ import (
 )
 
 func TestAtkSkills(t *testing.T) {
-	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2}
+	stat := Stats{hp: 10, maxHP: 10, atk: 1, def: 2, mag: 10, res: 5}
 	owner := &Actor{name: "a1", stats: stat, statuses: make(map[string]*Buff)}
 	target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
-	t.Run("Direct Atk without Flat Dmg", func(t *testing.T) {
-		d := Dmg{value: 4, dmgType: DIRECT_DMG_TYPE}
+	t.Run("Direct Physical Atk without Flat Dmg", func(t *testing.T) {
+		d := Dmg{value: 4, dmgType: DIRECT_DMG_TYPE, dmgCategory: PHYSICAL_DMG}
 		s := Skill{name: "s1", dmg: d}
 
 		act(s, owner, target)
@@ -19,9 +19,9 @@ func TestAtkSkills(t *testing.T) {
 			t.Errorf("Actor hp hit by skill should be %v, was %+v", want, target)
 		}
 	})
-	t.Run("Direct Atk with Flat Dmg", func(t *testing.T) {
+	t.Run("Direct Physical Atk with Flat Dmg", func(t *testing.T) {
 		target.stats.hp = target.stats.maxHP
-		d := Dmg{value: 4, dmgType: DIRECT_DMG_TYPE, isFlatValue: true}
+		d := Dmg{value: 4, dmgType: DIRECT_DMG_TYPE, isFlatValue: true, dmgCategory: PHYSICAL_DMG}
 		s := Skill{name: "s1", dmg: d}
 
 		act(s, owner, target)
@@ -33,7 +33,7 @@ func TestAtkSkills(t *testing.T) {
 	})
 	t.Run("True Atk without Flat Dmg", func(t *testing.T) {
 		target.stats.hp = target.stats.maxHP
-		d := Dmg{value: 5, dmgType: TRUE_DMG_TYPE}
+		d := Dmg{value: 5, dmgType: TRUE_DMG_TYPE, dmgCategory: PHYSICAL_DMG}
 		s := Skill{name: "s1", dmg: d}
 
 		act(s, owner, target)
@@ -46,7 +46,7 @@ func TestAtkSkills(t *testing.T) {
 	})
 	t.Run("True Atk with Flat Dmg", func(t *testing.T) {
 		target.stats.hp = target.stats.maxHP
-		d := Dmg{value: 5, dmgType: TRUE_DMG_TYPE, isFlatValue: true}
+		d := Dmg{value: 5, dmgType: TRUE_DMG_TYPE, isFlatValue: true, dmgCategory: PHYSICAL_DMG}
 		s := Skill{name: "s1", dmg: d}
 
 		act(s, owner, target)
@@ -56,6 +56,30 @@ func TestAtkSkills(t *testing.T) {
 			t.Errorf("Actor hp hit by skill should be %v, was %+v", want, target)
 		}
 
+	})
+	t.Run("Direct Magical Atk without Flat Dmg", func(t *testing.T) {
+		target.stats.hp = target.stats.maxHP
+		d := Dmg{value: 4, dmgType: DIRECT_DMG_TYPE, dmgCategory: MAGICAL_DMG}
+		s := Skill{name: "s1", dmg: d}
+
+		act(s, owner, target)
+
+		want := target.stats.maxHP - 9
+		if target.stats.hp != want {
+			t.Errorf("Actor hp hit by skill should be %v, was %+v", want, target)
+		}
+	})
+	t.Run("Direct Magical Atk with Flat Dmg", func(t *testing.T) {
+		target.stats.hp = target.stats.maxHP
+		d := Dmg{value: 6, dmgType: DIRECT_DMG_TYPE, isFlatValue: true, dmgCategory: MAGICAL_DMG}
+		s := Skill{name: "s1", dmg: d}
+
+		act(s, owner, target)
+
+		want := target.stats.maxHP - 1
+		if target.stats.hp != want {
+			t.Errorf("Actor hp hit by skill should be %v, was %+v", want, target)
+		}
 	})
 }
 
@@ -119,7 +143,7 @@ func TestStatusPassiveBuff(t *testing.T) {
 	atkSkill := Skill{
 		name:      "s1",
 		skillType: BUFF_SKILL_TYPE,
-		dmg:       Dmg{value: 10, dmgType: DIRECT_DMG_TYPE},
+		dmg:       Dmg{value: 10, dmgType: DIRECT_DMG_TYPE, dmgCategory: PHYSICAL_DMG},
 	}
 	t.Run("Status Effect, passive perfect defense", func(t *testing.T) {
 		target := &Actor{name: "a2", stats: stat, statuses: make(map[string]*Buff)}
@@ -161,7 +185,7 @@ func TestElementalEffectiveness(t *testing.T) {
 	atkSkill := Skill{
 		name:      "s1",
 		skillType: BUFF_SKILL_TYPE,
-		dmg:       Dmg{value: 2, dmgType: DIRECT_DMG_TYPE},
+		dmg:       Dmg{value: 2, dmgType: DIRECT_DMG_TYPE, dmgCategory: PHYSICAL_DMG},
 		element:   WATER,
 	}
 	t.Run("Water Element Skill is 150% effective vs Fire target, vs DIRECT_DMG", func(t *testing.T) {
