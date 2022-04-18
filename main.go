@@ -87,12 +87,14 @@ type Skill struct {
 }
 
 type Stats struct {
-	hp    int
-	maxHP int
-	atk   int
-	def   int
-	mag   int
-	res   int
+	hp       int
+	maxHP    int
+	shieldHP int
+	//maxShieldHP int
+	atk int
+	def int
+	mag int
+	res int
 }
 
 type Actor struct {
@@ -100,6 +102,17 @@ type Actor struct {
 	stats    Stats
 	statuses map[string]*Buff
 	element  ELEMENTS
+}
+
+type Team struct {
+	name       string
+	powerValue int
+}
+
+type AutoBattleResult struct {
+	winner Team
+	loser  Team
+	isDraw bool
 }
 
 // METHODS
@@ -122,10 +135,16 @@ func validateDmg(dmg int, target *Actor) int {
 }
 
 func dealDmg(target *Actor, dmg int) {
-	if target.stats.hp-dmg < 0 {
-		target.stats.hp = 0
+	if target.stats.shieldHP >= dmg {
+		target.stats.shieldHP -= dmg
+	} else {
+		effectiveDmg := dmg - target.stats.shieldHP
+		target.stats.shieldHP = 0
+		if target.stats.hp-effectiveDmg < 0 {
+			target.stats.hp = 0
+		}
+		target.stats.hp -= effectiveDmg
 	}
-	target.stats.hp -= dmg
 }
 
 func addElementalEffectiveness(dmg int, s Skill, target *Actor) int {
@@ -240,6 +259,18 @@ func act(s Skill, owner, target *Actor) {
 		if s.buff != (Buff{}) {
 			actBuff(s, owner, target)
 		}
+	}
+}
+
+func autoBattle(t1, t2 Team) *AutoBattleResult {
+	if t1.powerValue == t2.powerValue {
+		return &AutoBattleResult{isDraw: true}
+	} else if t1.powerValue > t2.powerValue {
+
+		return &AutoBattleResult{winner: t1, loser: t2, isDraw: false}
+	} else {
+
+		return &AutoBattleResult{winner: t2, loser: t1, isDraw: false}
 	}
 }
 

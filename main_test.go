@@ -81,6 +81,19 @@ func TestAtkSkills(t *testing.T) {
 			t.Errorf("Actor hp hit by skill should be %v, was %+v", want, target)
 		}
 	})
+	t.Run("Take dmg while having a Shield (temporary?)", func(t *testing.T) {
+		target.stats.shieldHP = 5
+		target.stats.hp = target.stats.maxHP
+		d := Dmg{value: 10, dmgType: DIRECT_DMG_TYPE, isFlatValue: true, dmgCategory: PHYSICAL_DMG}
+		s := Skill{name: "s1", dmg: d}
+
+		act(s, owner, target)
+
+		want := 7
+		if target.stats.hp != want {
+			t.Errorf("Actor hp hit by skill should be %v, was %+v", want, target)
+		}
+	})
 }
 
 func TestStatusStatBuff(t *testing.T) {
@@ -209,6 +222,21 @@ func TestElementalEffectiveness(t *testing.T) {
 		gotHP := target.stats.hp
 		if gotHP != wantHP {
 			t.Errorf("Actor wrong HP, got %v, want %v", gotHP, wantHP)
+		}
+	})
+}
+
+func TestAutoBattleManager(t *testing.T) {
+	t.Run("Stronger team wins vs Weaker team", func(t *testing.T) {
+		t1 := &Team{name: "t1", powerValue: 20}
+		t2 := &Team{name: "t2", powerValue: 10}
+
+		results := autoBattle(*t1, *t2)
+		wantWinner := t1.name
+		gotWinner := results.winner.name
+
+		if gotWinner != wantWinner {
+			t.Errorf("Wrong winning team, got: %+v, want: %+v", gotWinner, wantWinner)
 		}
 	})
 }
