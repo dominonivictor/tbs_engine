@@ -107,6 +107,7 @@ type Actor struct {
 type Team struct {
 	name       string
 	powerValue int
+	actors     []*Actor
 }
 
 type AutoBattleResult struct {
@@ -262,10 +263,26 @@ func act(s Skill, owner, target *Actor) {
 	}
 }
 
+func calculateActorPowerLevel(actor Actor) float32 {
+	s := actor.stats
+	return 0.75*(float32(s.maxHP)+0.5*float32(s.def)) + float32(s.atk)
+}
+
+func calculateTeamPowerLevel(team Team) float32 {
+	// TODO: Take into consideration resistances, skills, elemental mods
+	var teamPowerLevel float32
+	for _, actor := range team.actors {
+		teamPowerLevel += calculateActorPowerLevel(*actor)
+	}
+	return teamPowerLevel
+}
+
 func autoBattle(t1, t2 Team) *AutoBattleResult {
-	if t1.powerValue == t2.powerValue {
+	t1Power := calculateTeamPowerLevel(t1)
+	t2Power := calculateTeamPowerLevel(t2)
+	if t1Power == t2Power {
 		return &AutoBattleResult{isDraw: true}
-	} else if t1.powerValue > t2.powerValue {
+	} else if t1Power > t2Power {
 
 		return &AutoBattleResult{winner: t1, loser: t2, isDraw: false}
 	} else {

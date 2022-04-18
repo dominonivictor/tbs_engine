@@ -228,8 +228,14 @@ func TestElementalEffectiveness(t *testing.T) {
 
 func TestAutoBattleManager(t *testing.T) {
 	t.Run("Stronger team wins vs Weaker team", func(t *testing.T) {
-		t1 := &Team{name: "t1", powerValue: 20}
-		t2 := &Team{name: "t2", powerValue: 10}
+		stat1 := Stats{maxHP: 10, atk: 10, def: 0}
+		stat2 := Stats{maxHP: 10, atk: 1, def: 1}
+		a1t1 := &Actor{name: "a1", stats: stat1, statuses: make(map[string]*Buff)}
+		a1t2 := &Actor{name: "a2", stats: stat2, statuses: make(map[string]*Buff)}
+		actorsT1 := []*Actor{a1t1}
+		actorsT2 := []*Actor{a1t2}
+		t1 := &Team{name: "t1", actors: actorsT1}
+		t2 := &Team{name: "t2", actors: actorsT2}
 
 		results := autoBattle(*t1, *t2)
 		wantWinner := t1.name
