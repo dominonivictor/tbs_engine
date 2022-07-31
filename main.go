@@ -46,10 +46,10 @@ const (
 	PASSIVE_BUFF_TYPE
 )
 
-type STATS int
+type STATS_ENUM int
 
 const (
-	ATK_STAT STATS = iota
+	ATK_STAT STATS_ENUM = iota
 	DEF_STAT
 )
 
@@ -67,7 +67,7 @@ type Buff struct {
 	value        int
 	timer        int
 	buffType     BUFF_TYPES
-	statAffected STATS
+	statAffected STATS_ENUM
 	buffId       string
 }
 
