@@ -1,39 +1,42 @@
 package components
 
+import (
+  "fmt"
+)
 
-var reactions_map map[MAT_NAME]map[InteractionType]map[MAT_NAME]float64 = map[MAT_NAME]map[InteractionType]map[MAT_NAME]float64{
-  WOOD: map[InteractionType]map[MAT_NAME]float64{
-    ATK_INTERACTION: map[MAT_NAME]float64{
+var reactions_map map[MAT_ID]map[InteractionType]map[MAT_ID]float64 = map[MAT_ID]map[InteractionType]map[MAT_ID]float64{
+  WOOD: map[InteractionType]map[MAT_ID]float64{
+    ATK_INTERACTION: map[MAT_ID]float64{
       WOOD: 1,
     },
   },
-  FIRE: map[InteractionType]map[MAT_NAME]float64{
-    ATK_INTERACTION: map[MAT_NAME]float64{
+  FIRE: map[InteractionType]map[MAT_ID]float64{
+    ATK_INTERACTION: map[MAT_ID]float64{
       WOOD: 2,
     },
   },
 }
 
-type MAT_NAME string
+type MAT_ID string
 const (
-  FIRE MAT_NAME = "FIRE"
-  WATER MAT_NAME = "WATER"
-  EARTH MAT_NAME = "EARTH"
-  AIR MAT_NAME = "AIR"
-  LIGHTNING MAT_NAME = "LIGHTNING"
-  WOOD MAT_NAME = "WOOD"
-  CLOTH MAT_NAME = "CLOTH"
-  BONE MAT_NAME = "BONE"
-  FAT MAT_NAME = "FAT"
-  FEATHER MAT_NAME = "FEATHER"
-  STONE MAT_NAME = "STONE"
-  MUSCLE MAT_NAME = "MUSCLE"
-  VAPOR MAT_NAME = "VAPOR"
-  RUBBER MAT_NAME = "RUBBER"
-  HAIR MAT_NAME = "HAIR"
-  METAL MAT_NAME = "METAL"
-  SCALE MAT_NAME = "SCALE"
-  LEATHER MAT_NAME = "LEATHER"
+  FIRE MAT_ID = "FIRE"
+  WATER MAT_ID = "WATER"
+  EARTH MAT_ID = "EARTH"
+  AIR MAT_ID = "AIR"
+  LIGHTNING MAT_ID = "LIGHTNING"
+  WOOD MAT_ID = "WOOD"
+  CLOTH MAT_ID = "CLOTH"
+  BONE MAT_ID = "BONE"
+  FAT MAT_ID = "FAT"
+  FEATHER MAT_ID = "FEATHER"
+  STONE MAT_ID = "STONE"
+  MUSCLE MAT_ID = "MUSCLE"
+  VAPOR MAT_ID = "VAPOR"
+  RUBBER MAT_ID = "RUBBER"
+  HAIR MAT_ID = "HAIR"
+  METAL MAT_ID = "METAL"
+  SCALE MAT_ID = "SCALE"
+  LEATHER MAT_ID = "LEATHER"
 )
 
 type MAT_STATUS string
@@ -69,8 +72,8 @@ const (
 )
 
 type Material struct {
-  id MAT_NAME
-  name MAT_NAME
+  id MAT_ID
+  name MAT_ID
   // TODO: think of this later
   // density int       // from 0 to 100, 0 ultra soft 100 ultra dense!
   // heat_transfer int // from 0 to 100, 0 no heat transfer, 100 a lot of heat transfer
@@ -82,7 +85,7 @@ type Material struct {
   //is_water_proof bool
   //is_flammable bool
   //is_explosive bool
-  //reactsWith map[MAT_NAME][]ActionResultABC // maybe use another table/map for it
+  //reactsWith map[MAT_ID][]ActionResultABC // maybe use another table/map for it
 
   // impact resistance, fractire, yield, absorption
   // compression, tension, torsion, bending, edges, texture, boil, ignite, melt point
@@ -91,16 +94,27 @@ type Material struct {
   // for every organ, limb, hairs (moustache)
 }
 
-func NewMaterial() Material{
-  return Material{
-    id: WOOD,
-    name: "regular piece of wood",
+func NewMaterial(name MAT_ID) Material{
+  var m Material
+  switch name {
+    case WOOD:
+      m = Material{
+            id: WOOD,
+            name: "regular piece of wood",
+          }
+    default:
+      m = Material{
+        id: FIRE,
+        name: "the fiery fire",
+      } 
+ 
   }
+  return m
 }
 
-type MATERIALS_TABLE map[MAT_NAME]Material
+type MATERIALS_TABLE map[MAT_ID]Material
 
-var MAT_TYPE_MAP MATERIALS_TABLE = map[MAT_NAME]Material{
+var MAT_TYPE_MAP MATERIALS_TABLE = map[MAT_ID]Material{
   WOOD: Material{
     id: WOOD,
     name: WOOD,
@@ -123,6 +137,8 @@ func reaction_effectiveness(s Skill, target Entity) int {
 }
 
 func reaction(interactor, interacted Material, interaction_type InteractionType) float64 {
+  fmt.Printf("reactions map: %+v \n", reactions_map)
+  fmt.Printf("map[%s][%s][%s]", interactor.id, interaction_type, interacted.id)
   efficiency, ok := reactions_map[interactor.id][interaction_type][interacted.id]
   if !ok {
     return 1

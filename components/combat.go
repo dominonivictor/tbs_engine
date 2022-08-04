@@ -37,8 +37,8 @@ type SkillsMng struct {
   list []Skill
 }
 
-func (s Skill)get_bonus() float64 {
-  return 10
+func (s Skill) get_bonus() float64 {
+  return 0
 }
 
 func NewSkillsMng() SkillsMng {
@@ -104,7 +104,7 @@ type Attack struct {
 func NewAttack() Attack {
   return Attack{
     name: "atk name",
-    material: NewMaterial(),
+    material: NewMaterial(FIRE),
   }
 }
 
@@ -116,7 +116,7 @@ type Defense struct {
 func NewDefense() Defense {
   return Defense{
     name: "defense name",
-    material: NewMaterial(),
+    material: NewMaterial(WOOD),
   }
 }
 
@@ -134,7 +134,7 @@ func NewAttrMng() AttrMng {
 }
 
 func (a AttrMng) get_bonus(s Skill) float64 {
-  return 20
+  return 0
 }
 
 type Attr struct {
@@ -157,13 +157,16 @@ func choose_skill(owner Entity) Skill {
 
 func use_skill(s Skill, owner Entity, target Entity) ActionResultABC {
   bonuses := plan_final_bonuses(s, owner, target)
-  return ActionResult{text: fmt.Sprintf("%s used skill %s on %s with %q mod", owner.name, s.name, target.name, bonuses)}
+  t := fmt.Sprintf("%s used skill %s on %s with %d mod", owner.name, s.name, target.name, bonuses)
+  fmt.Println("Showing battle result?")
+  fmt.Println(t)
+  return ActionResult{text: t}
 }
 
-const STATUS_BONUS_MOD float64 = 15
-const ATTR_BONUS_MOD float64 = 15
-const SKILL_BONUS_MOD float64 = 15
-const EFFECTIVENESS_BONUS_MOD float64 = 15
+const STATUS_BONUS_MOD float64 = 1
+const ATTR_BONUS_MOD float64 = 1
+const SKILL_BONUS_MOD float64 = 1
+const EFFECTIVENESS_BONUS_MOD float64 = 1
 
 func get_bonuses_for_actor(s Skill, def_s Skill, ow, tg Entity, interaction_type InteractionType) int {
   status_bonus := ow.combat.health.get_bonus()
@@ -181,8 +184,9 @@ func plan_final_bonuses(s Skill, owner, target Entity) int {
   // 0 = completely misses/does harm to himself, 100 = godlike attack (needs to check lethality and stuff)
 
   def_s := target.combat.get_defense_skill_vs(s, s.interaction_type)
-  owner_bonuses := get_bonuses_for_actor(s, def_s, owner, target, DEF_INTERACTION)
-  target_bonuses := get_bonuses_for_actor(s, def_s, target, owner, DEF_INTERACTION)
+  owner_bonuses := get_bonuses_for_actor(s, def_s, owner, target, ATK_INTERACTION)
+  //target_bonuses := get_bonuses_for_actor(s, def_s, target, owner, DEF_INTERACTION)
+  target_bonuses := 0
   return owner_bonuses - target_bonuses
 }
 

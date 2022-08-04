@@ -295,9 +295,9 @@ func main() {
   t1 := comp.NewTeam()
   t2 := comp.NewTeam()
   battle := comp.BattleMng{
-    team1: t1,
-    team2: t2,
+    Team1: t1,
+    Team2: t2,
   }
-  battle.start_battle()
+  battle.Start_battle()
 
 }

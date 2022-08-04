@@ -1,5 +1,9 @@
 package components
 
+import (
+  "fmt"
+)
+
 type HealthMng struct {
   // for now it will be very simple, hp, max hp, thats it
   core Health
@@ -12,6 +16,7 @@ func NewHealthMng() HealthMng {
 }
 
 func (h HealthMng) is_active() bool {
+  fmt.Println("checking if its active")
   return h.core.hp > 0
 }
 
@@ -28,6 +33,6 @@ func NewHealth() Health {
 }
 
 func (h HealthMng) get_bonus() float64 {
-  return 30
+  return 0
 }
 
