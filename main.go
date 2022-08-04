@@ -1,8 +1,10 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
         comp "github.com/dominonivictor/tbs_engine/components"
+        "github.com/dominonivictor/tbs_engine/utils"
+      
 )
 
 // CONSTANTS
@@ -292,12 +294,16 @@ import (
 //}
 
 func main() {
+  records := utils.Load_materials()
+  fmt.Printf("materials: %+v", records)
   t1 := comp.NewTeam()
   t2 := comp.NewTeam()
   battle := comp.BattleMng{
     Team1: t1,
     Team2: t2,
   }
-  battle.Start_battle()
+  fmt.Println(battle)
+  //battle.Start_battle()
 
 }
+

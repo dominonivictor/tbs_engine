@@ -73,7 +73,7 @@ const (
 
 type Material struct {
   id MAT_ID
-  name MAT_ID
+  name string
   // TODO: think of this later
   // density int       // from 0 to 100, 0 ultra soft 100 ultra dense!
   // heat_transfer int // from 0 to 100, 0 no heat transfer, 100 a lot of heat transfer
@@ -92,6 +92,15 @@ type Material struct {
   // densities (liquid, solid), molar_mass
 
   // for every organ, limb, hairs (moustache)
+}
+
+func NewMaterialFromCSV(args ...string) Material {
+  return Material{
+    id: MAT_ID(args[0]),
+    name: args[1],
+
+  }
+
 }
 
 func NewMaterial(name MAT_ID) Material{
@@ -117,7 +126,7 @@ type MATERIALS_TABLE map[MAT_ID]Material
 var MAT_TYPE_MAP MATERIALS_TABLE = map[MAT_ID]Material{
   WOOD: Material{
     id: WOOD,
-    name: WOOD,
+    name: "woody",
     //density: 30, // from 0 to 100, 0 ultra soft 100 ultra dense!
     //heat_transfer: 30, // from 0 to 100, 0 no heat transfer, 100 a lot of heat transfer
     //conductivity: 30,// from 0 to 100, 0 = insulant, 100 very conductive
