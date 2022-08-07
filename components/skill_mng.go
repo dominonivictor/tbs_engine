@@ -144,3 +144,7 @@ const (
   POISON_ACT_ID ACTION_ID = "POISON_ACT_ID"
   BURN_ACT_ID ACTION_ID = "BURN_ACT_ID"
 )
+
+func NewSkillFromCSV(id SKILL_ID) Skill {
+  return Skill{}
+}

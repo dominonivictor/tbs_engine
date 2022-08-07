@@ -26,11 +26,11 @@ type NewBattleMngArgs struct {
 func NewBattleMng(data *LoadedData, args NewBattleMngArgs) *BattleMng {
   t1 := args.Team1
   if t1 == nil {
-    t1 = NewTeam(data,  data.team_map[DEFAULT_TEAM_ID])
+    t1 = NewTeam(data,  data.Teams_map[DEFAULT_TEAM_ID])
   }
   t2 := args.Team2
   if t2 == nil {
-    t2 = NewTeam(data,  data.team_map[DEFAULT_TEAM_ID])
+    t2 = NewTeam(data,  data.Teams_map[DEFAULT_TEAM_ID])
   }
 
   return &BattleMng{
@@ -56,6 +56,10 @@ func NewTeam(data *LoadedData, template TeamTemplate) *Team {
     actors: actors,
     name: "team name",
   }
+}
+
+func NewTeamFromCSV(tid TEMPLATE_ID) TeamTemplate {
+  return TeamTemplate{}
 }
 
 func (t Team) is_at_least_one_actor_active() bool {
@@ -111,3 +115,4 @@ func (b BattleMng) next_actor_act(reaction_map REACTION_MAP, t1, t2 *Team) Actio
   return ActionResult{}
   
 }
+

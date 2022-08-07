@@ -4,10 +4,10 @@ package components
 // pass them from main.go into BattleMng and so forth...
 
 type LoadedData struct {
-  reaction_map REACTION_MAP
-  material_map MATERIAL_MAP
-  skill_map SKILL_MAP
-  team_map TEMPLATE_MAP
+  Reactions_map REACTION_MAP
+  Materials_map MATERIAL_MAP
+  Skills_map SKILL_MAP
+  Teams_map TEMPLATE_MAP
 }
 
 type TEMPLATE_MAP map[TEMPLATE_ID]TeamTemplate
@@ -23,9 +23,9 @@ type TeamTemplate struct {
 }
 
 func NewTeamTemplate(data LoadedData, id TEMPLATE_ID) TeamTemplate {
-  t, ok := data.team_map[id]
+  t, ok := data.Teams_map[id]
   if !ok {
-    t, _ = data.team_map[DEFAULT_TEAM_ID]
+    t, _ = data.Teams_map[DEFAULT_TEAM_ID]
   }
   return t
 }

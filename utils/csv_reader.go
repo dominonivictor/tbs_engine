@@ -28,10 +28,10 @@ func Read_csv(filePath string) [][]string {
 
 func Load_data() *comp.LoadedData {
   return &comp.LoadedData{
-    reactions_map: Load_reactions(),
-    materials_map: Load_materials(),
-    teams_map: Load_teams(),
-    skills_map: Load_skills(),
+    Reactions_map: Load_reactions(),
+    Materials_map: Load_materials(),
+    Teams_map: Load_teams(),
+    Skills_map: Load_skills(),
   }
 }
 
@@ -83,7 +83,7 @@ func Load_skills() map[comp.SKILL_ID]comp.Skill {
   skills := map[comp.SKILL_ID]comp.Skill{}
   for _, skill := range skills_csv {
     id := comp.SKILL_ID(skill[0])
-    skills[id] = comp.NewSkill(id)
+    skills[id] = comp.NewSkillFromCSV(id)
   }
   return skills
 }
@@ -94,7 +94,7 @@ func Load_teams() map[comp.TEMPLATE_ID]comp.TeamTemplate{
   teams := map[comp.TEMPLATE_ID]comp.TeamTemplate{}
   for _, team := range teams_csv {
     id := comp.TEMPLATE_ID(team[0])
-    teams[id] = comp.NewTeamFromCSV(team...)
+    teams[id] = comp.NewTeamFromCSV(id)
   }
   return teams
 }

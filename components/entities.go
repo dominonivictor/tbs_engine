@@ -43,5 +43,5 @@ const (
 )
 
 
-  //t1 := comp.NewTeam(data, data.template_map[comp.LATEGAME_3_DWARV_PARTY])
-  //t2 := comp.NewTeam(data, data.template_map[comp.LATEGAME_DRAGON_LICH_DWARF_NECRO])
+  //t1 := comp.NewTeam(data, data.Template_map[comp.LATEGAME_3_DWARV_PARTY])
+  //t2 := comp.NewTeam(data, data.Template_map[comp.LATEGAME_DRAGON_LICH_DWARF_NECRO])

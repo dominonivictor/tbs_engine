@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-        comp "github.com/dominonivictor/tbs_engine/components"
+        //comp "github.com/dominonivictor/tbs_engine/components"
         "github.com/dominonivictor/tbs_engine/utils"
       
 )
