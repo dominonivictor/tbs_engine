@@ -4,21 +4,39 @@ import (
   "fmt"
 )
 
-var reactions_map map[MAT_ID]map[InteractionType]map[MAT_ID]float64 = map[MAT_ID]map[InteractionType]map[MAT_ID]float64{
-  WOOD: map[InteractionType]map[MAT_ID]float64{
-    ATK_INTERACTION: map[MAT_ID]float64{
-      WOOD: 1,
-    },
-  },
-  FIRE: map[InteractionType]map[MAT_ID]float64{
-    ATK_INTERACTION: map[MAT_ID]float64{
-      WOOD: 2,
-    },
-  },
+type ReactionInfo struct {
+  Value int
+  Description string
+  Product MAT_ID
 }
+
+func NewReactionInfo(value int, description string, product_id MAT_ID) ReactionInfo {
+  return ReactionInfo{
+    Value: value,
+    Description: description,
+    Product: product_id,
+  }
+}
+
+type REACTION_MAP_TYPE map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo 
+
+//var reaction_map map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo = map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo{
+//  WOOD: map[I9N_ID]map[MAT_ID]ReactionInfo{
+//    ATK_INTERACTION: map[MAT_ID]ReactionInfo{
+//      WOOD: ReactionInfo{Value: 1},
+//    },
+//  },
+//  FIRE: map[I9N_ID]map[MAT_ID]ReactionInfo{
+//    ATK_INTERACTION: map[MAT_ID]ReactionInfo{
+//      WOOD: ReactionInfo{Value: 2},
+//    },
+//  },
+//}
 
 type MAT_ID string
 const (
+  EMPTY_MATERIAL MAT_ID = ""
+  NO_PRODUCT_MATERIAL MAT_ID = "NO_PRODUCT_MATERIAL"
   FIRE MAT_ID = "FIRE"
   WATER MAT_ID = "WATER"
   EARTH MAT_ID = "EARTH"
@@ -37,6 +55,7 @@ const (
   METAL MAT_ID = "METAL"
   SCALE MAT_ID = "SCALE"
   LEATHER MAT_ID = "LEATHER"
+  ASH MAT_ID = "ASH"
 )
 
 type MAT_STATUS string
@@ -98,7 +117,6 @@ func NewMaterialFromCSV(args ...string) Material {
   return Material{
     id: MAT_ID(args[0]),
     name: args[1],
-
   }
 
 }
@@ -145,13 +163,18 @@ func reaction_effectiveness(s Skill, target Entity) int {
   return 10
 }
 
-func reaction(interactor, interacted Material, interaction_type InteractionType) float64 {
-  fmt.Printf("reactions map: %+v \n", reactions_map)
-  fmt.Printf("map[%s][%s][%s]", interactor.id, interaction_type, interacted.id)
-  efficiency, ok := reactions_map[interactor.id][interaction_type][interacted.id]
+func reaction(reaction_map REACTION_MAP_TYPE, interactor, interacted Material, interaction_type I9N_ID)  ReactionInfo {
+  fmt.Printf("reactions map: %+v \n", reaction_map)
+  //go for specific, but take generic if not found
+  reaction_info, ok := reaction_map[interactor.id][interaction_type][interacted.id]
   if !ok {
-    return 1
-  }
-  return efficiency
+    ok = true
+    reaction_info, ok = reaction_map[interactor.id][GENERIC_I9N][interacted.id]
+    if !ok {
 
+      return NewReactionInfo( 1, "no description", NO_PRODUCT_MATERIAL)
+    }
+  }
+  fmt.Printf("map[%s][%s][%s]=%+v", interactor.id, interaction_type, interacted.id, reaction_info)
+  return reaction_info
 }

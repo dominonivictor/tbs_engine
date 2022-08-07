@@ -8,9 +8,25 @@ import (
 type BattleMng struct{
   Team1 Team
   Team2 Team
-  terrain Terrain
+  speed BattleSpeedMng
+  terrain TerrainMng
   reports string
+  entities []Entity
 }
+
+func NewBattleMng(t1, t2 Team, entities []Entity, terrain TerrainMng) BattleMng {
+  speed := BattleSpeedMng{}
+  bm := BattleMng{
+    Team1: t1,
+    Team2: t2,
+    entities: entities,
+    terrain: terrain,
+    speed: speed,
+  }
+
+  return bm
+}
+
 
 type Team struct {
   actors []Entity
@@ -33,29 +49,28 @@ func (t Team) is_at_least_one_actor_active() bool {
     }
   }
   fmt.Printf("at_least_one_is_active: %t\n", at_least_one_is_active)
-  //return at_least_one_is_active
-  return true
+  return at_least_one_is_active
 }
 
 func (t Team) choose_actor() Entity {
   return t.actors[0]
 }
 
-type Terrain struct {
+type TerrainMng struct {
 
 }
 
-func choose_and_act(t1, t2 Team){
+func choose_and_act(reaction_map REACTION_MAP_TYPE, t1, t2 Team){
     fmt.Println("choosing and acting")
     attacker := t1.choose_actor()
     skill := choose_skill(attacker)
     target := choose_target(attacker, t2.actors[0]) 
-    result := use_skill(skill, attacker, target)
+    result := use_skill(reaction_map, skill, attacker, target)
     fmt.Println(result.String())
     fmt.Println("finished choosing and acting")
 }
 
-func (b BattleMng) Start_battle(){
+func (b BattleMng) Start_battle_till_death_or_other_interruption(reaction_map REACTION_MAP_TYPE){
   fmt.Println("Starting battle...")
   // THIS IS CRAP FOR NOW
   c1 := b.Team1.is_at_least_one_actor_active()  
@@ -63,11 +78,19 @@ func (b BattleMng) Start_battle(){
   for c1 && c2 {
     fmt.Println("inside loop")
     // here the ideal scenario would be to take the speed of actors and choose next to move
-    choose_and_act(b.Team1, b.Team2)
-    choose_and_act(b.Team2, b.Team1)
-    //c1 = !b.Team1.is_at_least_one_actor_active()  
-    c1 = false
-    c2 = !b.Team2.is_at_least_one_actor_active()  
+    b.speed.pass_time(b)
+    _ = b.next_actor_act(reaction_map, b.Team1, b.Team2)
+    //fmt.Println(action_result.print())
+    //choose_and_act(reaction_map, b.Team1, b.Team2)
+    //choose_and_act(reaction_map, b.Team2, b.Team1)
+    c1 = b.Team1.is_at_least_one_actor_active()
+    c2 = b.Team2.is_at_least_one_actor_active()  
   }
   fmt.Println("Battle is over!")
+}
+
+func (b BattleMng) next_actor_act(reaction_map REACTION_MAP_TYPE, t1, t2 Team) ActionResult {
+  choose_and_act(reaction_map, b.Team1, b.Team2)
+  return ActionResult{}
+  
 }

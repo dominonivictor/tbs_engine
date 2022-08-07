@@ -16,7 +16,7 @@ func NewHealthMng() HealthMng {
 }
 
 func (h HealthMng) is_active() bool {
-  fmt.Println("checking if its active")
+  fmt.Printf("checking if its active h.core.hp=%d > 0 ?=%t\n", h.core.hp, h.core.hp > 0)
   return h.core.hp > 0
 }
 
@@ -32,7 +32,7 @@ func NewHealth() Health {
   }
 }
 
-func (h HealthMng) get_bonus() float64 {
+func (h HealthMng) get_bonus() int {
   return 0
 }
 

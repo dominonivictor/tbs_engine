@@ -9,11 +9,11 @@ import (
 
 // CONSTANTS
 
-//var elementsTable map[ELEMENTS]map[ELEMENTS]float64 = map[ELEMENTS]map[ELEMENTS]float64{
-//	FIRE: map[ELEMENTS]float64{
+//var elementsTable map[ELEMENTS]map[ELEMENTS]int = map[ELEMENTS]map[ELEMENTS]int{
+//	FIRE: map[ELEMENTS]int{
 //		WATER: 0.5,
 //	},
-//	WATER: map[ELEMENTS]float64{
+//	WATER: map[ELEMENTS]int{
 //		FIRE: 2,
 //	}}
 //
@@ -153,7 +153,7 @@ import (
 //func addElementalEffectiveness(dmg int, s Skill, target *Actor) int {
 //	elementMultiplier, found := elementsTable[s.element][target.element]
 //	if found {
-//		dmgWithMultiplier := int(elementMultiplier * float64(dmg))
+//		dmgWithMultiplier := int(elementMultiplier * int(dmg))
 //		return dmgWithMultiplier
 //	}
 //	return dmg
@@ -219,7 +219,7 @@ import (
 //	if !found {
 //		target.statuses[status.buffId] = status
 //	} else {
-//		currStatus.timer = int(math.Max(float64(currStatus.timer), float64(status.timer)))
+//		currStatus.timer = int(math.Max(int(currStatus.timer), int(status.timer)))
 //	}
 //}
 //
@@ -293,9 +293,14 @@ import (
 //	}
 //}
 
+//const M int = 1
+//const I int32 = int32(2)
+//const A string = "spcl"
 func main() {
-  records := utils.Load_materials()
-  fmt.Printf("materials: %+v", records)
+  //materials := utils.Load_materials()
+  reactions := utils.Load_reactions()
+  //fmt.Printf("materials: %+v\n\n", materials)
+  fmt.Printf("reactions: %+v\n\n", reactions)
   t1 := comp.NewTeam()
   t2 := comp.NewTeam()
   battle := comp.BattleMng{
@@ -303,7 +308,18 @@ func main() {
     Team2: t2,
   }
   fmt.Println(battle)
-  //battle.Start_battle()
-
+  battle.Start_battle_till_death_or_other_interruption(reactions)
+  //m := map[int]map[int32]string{
+  //  M: map[int32]string{
+  //    I: A,
+  //  },
+  //} 
+  //var x int = 2
+  //var y int32 = 3
+  //var z string = "yo"
+  //m[x] = map[int32]string{
+  //  y: z,
+  //}
+  //fmt.Printf("MAPA: %+v \n\n------------", m)
 }
 
