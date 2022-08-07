@@ -6,7 +6,7 @@ type AttrMng struct {
 
 }
 
-func NewAttrMng() AttrMng {
+func NewAttrMng(_ *LoadedData, _ Breed) AttrMng {
   return AttrMng{
     list: []Attr{
       NewAttr(),
@@ -14,7 +14,7 @@ func NewAttrMng() AttrMng {
   }
 }
 
-func (a AttrMng) get_bonus(s Skill) int {
+func (a AttrMng) get_bonus(s *Skill) int {
   return 0
 }
 

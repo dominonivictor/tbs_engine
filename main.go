@@ -298,17 +298,17 @@ import (
 //const A string = "spcl"
 func main() {
   //materials := utils.Load_materials()
-  reactions := utils.Load_reactions()
   //fmt.Printf("materials: %+v\n\n", materials)
-  fmt.Printf("reactions: %+v\n\n", reactions)
-  t1 := comp.NewTeam()
-  t2 := comp.NewTeam()
-  battle := comp.BattleMng{
-    Team1: t1,
-    Team2: t2,
-  }
-  fmt.Println(battle)
-  battle.Start_battle_till_death_or_other_interruption(reactions)
+  data := utils.Load_data()
+  fmt.Printf("data: %+v\n\n", data)
+  //t1 := comp.NewTeam(data, data.template_map[comp.LATEGAME_3_DWARV_PARTY])
+  //t2 := comp.NewTeam(data, data.template_map[comp.LATEGAME_DRAGON_LICH_DWARF_NECRO])
+  //battle := comp.BattleMng{
+  //  Team1: t1,
+  //  Team2: t2,
+  //}
+  //fmt.Println(battle)
+  //battle.Start_battle_till_death_or_other_interruption(reactions)
   //m := map[int]map[int32]string{
   //  M: map[int32]string{
   //    I: A,

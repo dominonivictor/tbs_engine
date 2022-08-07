@@ -9,7 +9,7 @@ type HealthMng struct {
   core Health
 }
 
-func NewHealthMng() HealthMng {
+func NewHealthMng(_ *LoadedData, _ Breed) HealthMng {
   return HealthMng{
     core: NewHealth(),
   } 

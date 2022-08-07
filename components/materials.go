@@ -18,7 +18,8 @@ func NewReactionInfo(value int, description string, product_id MAT_ID) ReactionI
   }
 }
 
-type REACTION_MAP_TYPE map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo 
+type REACTION_MAP map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo 
+type MATERIAL_MAP map[MAT_ID]Material
 
 //var reaction_map map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo = map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo{
 //  WOOD: map[I9N_ID]map[MAT_ID]ReactionInfo{
@@ -159,11 +160,11 @@ var MAT_TYPE_MAP MATERIALS_TABLE = map[MAT_ID]Material{
 },
 }
 
-func reaction_effectiveness(s Skill, target Entity) int {
+func reaction_effectiveness(s *Skill, target *Entity) int {
   return 10
 }
 
-func reaction(reaction_map REACTION_MAP_TYPE, interactor, interacted Material, interaction_type I9N_ID)  ReactionInfo {
+func reaction(reaction_map REACTION_MAP, interactor, interacted Material, interaction_type I9N_ID)  ReactionInfo {
   fmt.Printf("reactions map: %+v \n", reaction_map)
   //go for specific, but take generic if not found
   reaction_info, ok := reaction_map[interactor.id][interaction_type][interacted.id]

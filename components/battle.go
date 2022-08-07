@@ -6,36 +6,53 @@ import (
 
 
 type BattleMng struct{
-  Team1 Team
-  Team2 Team
-  speed BattleSpeedMng
-  terrain TerrainMng
+  Team1 *Team
+  Team2 *Team
+  speed *BattleSpeedMng
+  terrain *TerrainMng
   reports string
-  entities []Entity
+  entities []*Entity
 }
 
-func NewBattleMng(t1, t2 Team, entities []Entity, terrain TerrainMng) BattleMng {
-  speed := BattleSpeedMng{}
-  bm := BattleMng{
-    Team1: t1,
-    Team2: t2,
-    entities: entities,
-    terrain: terrain,
-    speed: speed,
+type NewBattleMngArgs struct {
+  Team1 *Team
+  Team2 *Team
+  speed *BattleSpeedMng
+  terrain *TerrainMng
+  reports string
+  entities []*Entity
+}
+
+func NewBattleMng(data *LoadedData, args NewBattleMngArgs) *BattleMng {
+  t1 := args.Team1
+  if t1 == nil {
+    t1 = NewTeam(data,  data.team_map[DEFAULT_TEAM_ID])
+  }
+  t2 := args.Team2
+  if t2 == nil {
+    t2 = NewTeam(data,  data.team_map[DEFAULT_TEAM_ID])
   }
 
-  return bm
+  return &BattleMng{
+    Team1: t1,
+    Team2: t2,
+    entities: args.entities,
+    terrain: args.terrain,
+    speed: args.speed,
+  }
 }
 
 
 type Team struct {
-  actors []Entity
+  actors []*Entity
   name string
 }
 
-func NewTeam() Team {
-  actors := []Entity{NewEntity()}
-  return Team{
+
+func NewTeam(data *LoadedData, template TeamTemplate) *Team {
+  // create default team from template
+  actors := []*Entity{NewEntity(data, NewBreed(template.breeds[0]))}
+  return &Team{
     actors: actors,
     name: "team name",
   }
@@ -52,7 +69,7 @@ func (t Team) is_at_least_one_actor_active() bool {
   return at_least_one_is_active
 }
 
-func (t Team) choose_actor() Entity {
+func (t Team) choose_actor() *Entity {
   return t.actors[0]
 }
 
@@ -60,7 +77,7 @@ type TerrainMng struct {
 
 }
 
-func choose_and_act(reaction_map REACTION_MAP_TYPE, t1, t2 Team){
+func choose_and_act(reaction_map REACTION_MAP, t1, t2 *Team){
     fmt.Println("choosing and acting")
     attacker := t1.choose_actor()
     skill := choose_skill(attacker)
@@ -70,7 +87,7 @@ func choose_and_act(reaction_map REACTION_MAP_TYPE, t1, t2 Team){
     fmt.Println("finished choosing and acting")
 }
 
-func (b BattleMng) Start_battle_till_death_or_other_interruption(reaction_map REACTION_MAP_TYPE){
+func (b BattleMng) Start_battle_till_death_or_other_interruption(reaction_map REACTION_MAP){
   fmt.Println("Starting battle...")
   // THIS IS CRAP FOR NOW
   c1 := b.Team1.is_at_least_one_actor_active()  
@@ -89,7 +106,7 @@ func (b BattleMng) Start_battle_till_death_or_other_interruption(reaction_map RE
   fmt.Println("Battle is over!")
 }
 
-func (b BattleMng) next_actor_act(reaction_map REACTION_MAP_TYPE, t1, t2 Team) ActionResult {
+func (b BattleMng) next_actor_act(reaction_map REACTION_MAP, t1, t2 *Team) ActionResult {
   choose_and_act(reaction_map, b.Team1, b.Team2)
   return ActionResult{}
   
