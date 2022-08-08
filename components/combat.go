@@ -42,8 +42,8 @@ func calculate_def_effectiveness(reaction_map REACTION_MAP, def_skill, atk_skill
   //var max_effectiveness int // from -2 to 2?, -2 = heals from it, 0 = imune, 2 = double dmg 
   reaction_eff := reaction(
     reaction_map, 
-    def_skill.defense.material, 
-    atk_skill.defense.material, 
+    def_skill.material, 
+    atk_skill.material, 
     atk_skill.i9n_id,
   )
   return reaction_eff.Value
@@ -77,7 +77,7 @@ func get_bonuses_for_actor(reaction_map REACTION_MAP,  s, def_s *Skill, ow, tg *
   status_bonus := ow.combat.health.get_bonus()
   attr_bonus  := ow.combat.attr.get_bonus(s)
   skill_bonus := s.get_bonus()
-  effectiveness_bonus := reaction(reaction_map, s.attack.material, def_s.defense.material, i9n_id).Value
+  effectiveness_bonus := reaction(reaction_map, s.material, def_s.material, i9n_id).Value
   return int( 
     status_bonus * STATUS_BONUS_MOD + 
     attr_bonus * ATTR_BONUS_MOD + 

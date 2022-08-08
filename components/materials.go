@@ -18,8 +18,6 @@ func NewReactionInfo(value int, description string, product_id MAT_ID) ReactionI
   }
 }
 
-type REACTION_MAP map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo 
-type MATERIAL_MAP map[MAT_ID]Material
 
 //var reaction_map map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo = map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo{
 //  WOOD: map[I9N_ID]map[MAT_ID]ReactionInfo{
@@ -36,7 +34,7 @@ type MATERIAL_MAP map[MAT_ID]Material
 
 type MAT_ID string
 const (
-  EMPTY_MATERIAL MAT_ID = ""
+  VOID MAT_ID = ""
   NO_PRODUCT_MATERIAL MAT_ID = "NO_PRODUCT_MATERIAL"
   FIRE MAT_ID = "FIRE"
   WATER MAT_ID = "WATER"
@@ -114,57 +112,46 @@ type Material struct {
   // for every organ, limb, hairs (moustache)
 }
 
-func NewMaterialFromCSV(args ...string) Material {
-  return Material{
+type NewMaterialArgs struct {
+  id MAT_ID
+  name string
+}
+
+func NewMaterialFromCSV(args ...string) NewMaterialArgs {
+  return NewMaterialArgs{
     id: MAT_ID(args[0]),
     name: args[1],
   }
 
 }
 
-func NewMaterial(name MAT_ID) Material{
-  var m Material
-  switch name {
-    case WOOD:
-      m = Material{
-            id: WOOD,
-            name: "regular piece of wood",
-          }
-    default:
-      m = Material{
-        id: FIRE,
-        name: "the fiery fire",
-      } 
- 
-  }
-  return m
+func NewMaterial(args NewMaterialArgs) *Material{
+  //var m Material
+  //switch name {
+    //case WOOD:
+    //  m = Material{
+    //        id: WOOD,
+    //        name: "regular piece of wood",
+    //      }
+    //case FIRE:
+    //  m = Material{
+    //    id: FIRE,
+    //    name: ""
+    //  }
+        
+    //default:
+    return &Material{
+      id: args.id,
+      name: args.name,
+    }
 }
 
-type MATERIALS_TABLE map[MAT_ID]Material
-
-var MAT_TYPE_MAP MATERIALS_TABLE = map[MAT_ID]Material{
-  WOOD: Material{
-    id: WOOD,
-    name: "woody",
-    //density: 30, // from 0 to 100, 0 ultra soft 100 ultra dense!
-    //heat_transfer: 30, // from 0 to 100, 0 no heat transfer, 100 a lot of heat transfer
-    //conductivity: 30,// from 0 to 100, 0 = insulant, 100 very conductive
-    //states: []MAT_STATE{SOLID_MAT_STATE},
-    //shape: LAYER_SHAPE,
-    //statuses: []MAT_STATUS{DRY_MAT_STATUS},
-    //is_eletric_insulant: false,
-    //is_water_proof: false,
-    //is_flammable: true,
-    //is_explosive: false,
-    //reactsWith: nil, // maybe use another table/map for it
-},
-}
 
 func reaction_effectiveness(s *Skill, target *Entity) int {
   return 10
 }
 
-func reaction(reaction_map REACTION_MAP, interactor, interacted Material, interaction_type I9N_ID)  ReactionInfo {
+func reaction(reaction_map REACTION_MAP, interactor, interacted *Material, interaction_type I9N_ID)  ReactionInfo {
   fmt.Printf("reactions map: %+v \n", reaction_map)
   //go for specific, but take generic if not found
   reaction_info, ok := reaction_map[interactor.id][interaction_type][interacted.id]

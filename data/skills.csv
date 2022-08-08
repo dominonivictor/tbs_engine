@@ -1,0 +1,4 @@
+id,name,rank,mat_id,i9n_id,atk_id,atk_value,def_id,def_value
+FIRE_BREATH,a breath of fire,8,FIRE,,FIRE_BREATH_ATK,15,,
+WATER_SLASH,whip of water slashed,5,WATER,,WATER_SLASH_ATK,10,,
+EARTH_BLOCK,a wall of earth,3,EARTH,,,,EARTH_BLOCK_DEF,10

@@ -24,10 +24,20 @@ type Breed struct {
   possible_skills []NewSkillArgs
 }
 
-func NewBreed(id BREED_ID) Breed {
+type NewBreedArgs struct {
+  race BREED_ID
+  possible_skills []NewSkillArgs
+}
+
+func NewBreed(args NewBreedArgs) Breed {
   return Breed{
-    race: id,
+    race: args.race,
+    possible_skills: args.possible_skills,
   }
+}
+
+func NewBreedFromCSV(args ...string) NewBreedArgs {
+  
 }
 
 type BREED_MAP map[BREED_ID]Breed 

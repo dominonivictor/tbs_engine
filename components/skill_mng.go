@@ -2,6 +2,8 @@ package components
 
 import (
   "sort"
+  "strconv"
+  "fmt"
 )
 
 type SkillsMng struct {
@@ -30,16 +32,19 @@ func new_skills_from_breed(breed Breed) []*Skill {
 type Skill struct {
   id SKILL_ID
   name string
+  rank RANKS
+  material *Material
   defense *Defense
   attack *Attack
   i9n_id I9N_ID
 }
 
-type SKILL_MAP map[SKILL_ID]Skill
 
 type NewSkillArgs struct {
   id SKILL_ID
   name string
+  rank RANKS
+  material NewMaterialArgs
   defense NewDefenseArgs
   attack NewAttackArgs
   i9n_id I9N_ID
@@ -82,15 +87,51 @@ func (mng SkillsMng) choose_best_effectiveness_vs_s(reaction_map REACTION_MAP, d
   return def_skills
 }
 
+type RANKS int
+// 8 High master
+// 7 master
+// 6 expert
+// 5 pro
+// 4 advanced
+// 3 average
+// 2 familiar
+// 1 novice
+// 0 dabbling
+const (
+  LEGENDARY_5 RANKS = 10
+  LEGENDARY RANKS = 9
+  HIGH_MASTER RANKS = 8
+  MASTER RANKS = 7
+  EXPERT RANKS = 6
+  PRO RANKS = 5
+  ADVANCED RANKS = 4
+  AVERAGE RANKS = 3
+  FAMILIAR RANKS = 2
+  NOVICE RANKS = 1
+  DABBLING RANKS = 0
+)
 
 type Attack struct {
   name string
-  material Material
+  value int
 }
+
+// ranks
+// 10 legendary 5 max dmg 20? 
+// 9 legendary max dmg 18?
+// 8 High master
+// 7 master
+// 6 expert
+// 5 professional
+// 4 advanced
+// 3 average
+// 2 familiar
+// 1 novice
+// 0 dabbling
 
 type NewAttackArgs struct {
   name string
-  mat_id MAT_ID
+  value int
 }
 
 func NewAttack(args NewAttackArgs) *Attack {
@@ -98,21 +139,31 @@ func NewAttack(args NewAttackArgs) *Attack {
   if name == "" {
     name = "default atk name"
   }
-  mat := args.mat_id
+  value := args.value
+  if value == 0 {
+    value = 1
+  }
   return &Attack{
     name: name,
-    material: NewMaterial(mat),
+    value: value,
+  }
+}
+
+func NewAttackFromCSV(id string, value int) NewAttackArgs {
+  return NewAttackArgs{
+    name: id,
+    value: value,
   }
 }
 
 type Defense struct {
   name string
-  material Material
+  value int
 }
 
 type NewDefenseArgs struct {
   name string
-  material Material
+  value int
 }
 
 
@@ -121,10 +172,16 @@ func NewDefense(args NewDefenseArgs) *Defense {
   if name == "" {
     name = "default def name"
   }
-  mat := args.material
   return &Defense{
     name: name,
-    material: NewMaterial(mat.id),
+    value: args.value,
+  }
+}
+
+func NewDefenseFromCSV(id string, value int) NewDefenseArgs {
+  return NewDefenseArgs{
+    name: id,
+    value: value,
   }
 }
 
@@ -145,6 +202,34 @@ const (
   BURN_ACT_ID ACTION_ID = "BURN_ACT_ID"
 )
 
-func NewSkillFromCSV(id SKILL_ID) Skill {
-  return Skill{}
+func NewSkillFromCSV(headers map[string]int, skill_row []string, material_map MATERIAL_MAP) NewSkillArgs {
+  rank, err := strconv.Atoi(skill_row[headers["rank"]])
+  if err != nil {
+    fmt.Errorf("Cant convert #%d column (%s) of ./data/skills.csv to int, using default 0", headers["rank"], skill_row[headers["rank"]])
+    rank = 0
+  }
+  atk_value, err2 := strconv.Atoi(skill_row[headers["atk_value"]])
+  if err2 != nil {
+    fmt.Errorf("Cant convert #%d column (%s) of ./data/skills.csv to int, using default 0", headers["rank"], skill_row[headers["rank"]])
+    atk_value = 0
+  }
+  def_value, err3 := strconv.Atoi(skill_row[headers["def_value"]])
+  if err3 != nil {
+    fmt.Errorf("Cant convert #%d column (%s) of ./data/skills.csv to int, using default 0", headers["rank"], skill_row[headers["rank"]])
+    def_value = 0
+  }
+  fmt.Printf("header: %+v, Skill_row[]: %+v\n", headers, skill_row)
+  mat_id := MAT_ID(skill_row[headers["mat_id"]])
+  fmt.Printf("MATERIAL ID: %s\n", string(mat_id))
+  mat_args := material_map[mat_id]
+  fmt.Printf("MATERIAL ARGS: %+v\n", mat_args)
+  return NewSkillArgs {
+    id: SKILL_ID(skill_row[headers["id"]]),
+    name: skill_row[headers["name"]],
+    rank: RANKS(rank),
+    material: mat_args,
+    i9n_id: I9N_ID(skill_row[headers["i9n_id"]]),
+    attack: NewAttackFromCSV(skill_row[headers["atk_id"]], atk_value),
+    defense: NewDefenseFromCSV(skill_row[headers["def_id"]], def_value),
+  }
 }

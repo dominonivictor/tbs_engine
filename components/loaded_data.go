@@ -10,6 +10,10 @@ type LoadedData struct {
   Teams_map TEMPLATE_MAP
 }
 
+type SKILL_MAP map[SKILL_ID]NewSkillArgs
+type REACTION_MAP map[MAT_ID]map[I9N_ID]map[MAT_ID]ReactionInfo 
+type MATERIAL_MAP map[MAT_ID]NewMaterialArgs
+
 type TEMPLATE_MAP map[TEMPLATE_ID]TeamTemplate
 type TEMPLATE_ID string
 const (

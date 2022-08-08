@@ -1,4 +1,4 @@
 interactor_id,interaction_id,interacted_id,value,description,product_1,product_2
 FIRE,GENERIC_I9N,WOOD,2,fire burns the wood!,ASH,SMOKE
-WATER,ATK_I9N,FIRE,2,water extinguishes the fire!,ASH,SMOKE
+WATER,ATK_I9N,FIRE,2,water extinguishes the fire!,VAPOR_WATER,SMOKE
 

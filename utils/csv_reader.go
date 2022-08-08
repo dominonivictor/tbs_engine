@@ -10,7 +10,7 @@ import (
 )
 
 
-func Read_csv(filePath string) [][]string {
+func Read_csv(filePath string) (map[string]int, [][]string) {
     f, err := os.Open(filePath)
     if err != nil {
         log.Fatal("Unable to read input file " + filePath, err)
@@ -22,37 +22,55 @@ func Read_csv(filePath string) [][]string {
     if err != nil {
         log.Fatal("Unable to parse file as CSV for " + filePath, err)
     }
+    headers := make(map[string]int)
+    for index, col_name := range records[0] {
+      headers[col_name] = index
+    }
 
-    return records
+    return headers, records[1:]
 }
 
 func Load_data() *comp.LoadedData {
+  //reacts := Load_reactions()
+  mats := Load_materials()
+  skills := Load_skills(mats)
   return &comp.LoadedData{
-    Reactions_map: Load_reactions(),
-    Materials_map: Load_materials(),
-    Teams_map: Load_teams(),
-    Skills_map: Load_skills(),
+    //Reactions_map: Load_reactions(),
+    Materials_map: mats,
+    //Teams_map: Load_teams(),
+    Skills_map: skills,
   }
 }
 
-func Load_materials() map[comp.MAT_ID]comp.Material{
-  materials_csv := Read_csv("./data/materials.csv")
-  materials := map[comp.MAT_ID]comp.Material{}
+//type MATERIAL_MAP map[MAT_ID]NewMaterialArgs
+func Load_materials() comp.MATERIAL_MAP {
+  _, materials_csv := Read_csv("./data/materials.csv")
+  materials := comp.MATERIAL_MAP(map[comp.MAT_ID]comp.NewMaterialArgs{})
   for _, mat := range materials_csv {
     id := comp.MAT_ID(mat[0])
-   materials[id] = comp.NewMaterialFromCSV(mat...)
+    materials[id] = comp.NewMaterialFromCSV(mat...)
   }
   return materials
 }
 
+func Load_breeds() comp.BREED_MAP {
+  _, breeds_csv := Read_csv("./data/breeds.csv")
+  breeds := comp.MATERIAL_MAP(map[comp.MAT_ID]comp.NewMaterialArgs{})
+  for _, breed := range breeds_csv {
+    id := comp.MAT_ID(breed[0])
+    breeds[id] = comp.NewBreedFromCSV(breed...)
+  }
+  return breeds
+}
+
 func Load_reactions() comp.REACTION_MAP {
-  reactions_csv := Read_csv("./data/reactions.csv")
+  _, reactions_csv := Read_csv("./data/reactions.csv")
   reactions_map := map[comp.MAT_ID]map[comp.I9N_ID]map[comp.MAT_ID]comp.ReactionInfo{
-    comp.EMPTY_MATERIAL: map[comp.I9N_ID]map[comp.MAT_ID]comp.ReactionInfo{
+    comp.VOID: map[comp.I9N_ID]map[comp.MAT_ID]comp.ReactionInfo{
       comp.GENERIC_I9N: map[comp.MAT_ID]comp.ReactionInfo{
-        comp.EMPTY_MATERIAL: comp.ReactionInfo{
+        comp.VOID: comp.ReactionInfo{
           Value: 1,
-          Product: comp.EMPTY_MATERIAL,
+          Product: comp.VOID,
         },
       },
     },
@@ -78,19 +96,21 @@ func Load_reactions() comp.REACTION_MAP {
   return reactions_map
 }
 
-func Load_skills() map[comp.SKILL_ID]comp.Skill {
-  skills_csv := Read_csv("./data/skills.csv")
-  skills := map[comp.SKILL_ID]comp.Skill{}
-  for _, skill := range skills_csv {
-    id := comp.SKILL_ID(skill[0])
-    skills[id] = comp.NewSkillFromCSV(id)
+func Load_skills(material_map comp.MATERIAL_MAP) map[comp.SKILL_ID]comp.NewSkillArgs {
+  fmt.Printf("Loading skills...")
+  headers, skills_csv := Read_csv("./data/skills.csv")
+  skills := map[comp.SKILL_ID]comp.NewSkillArgs{}
+  for _, skill_row := range skills_csv {
+    id_idx := headers["id"]
+    id := comp.SKILL_ID(skill_row[id_idx])
+    skills[id] = comp.NewSkillFromCSV(headers, skill_row, material_map)
   }
   return skills
 }
 
 
 func Load_teams() map[comp.TEMPLATE_ID]comp.TeamTemplate{
-  teams_csv := Read_csv("./data/teams.csv")
+  _, teams_csv := Read_csv("./data/teams.csv")
   teams := map[comp.TEMPLATE_ID]comp.TeamTemplate{}
   for _, team := range teams_csv {
     id := comp.TEMPLATE_ID(team[0])

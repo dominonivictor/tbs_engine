@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+        "github.com/k0kubun/pp"
         //comp "github.com/dominonivictor/tbs_engine/components"
         "github.com/dominonivictor/tbs_engine/utils"
       
@@ -300,7 +301,8 @@ func main() {
   //materials := utils.Load_materials()
   //fmt.Printf("materials: %+v\n\n", materials)
   data := utils.Load_data()
-  fmt.Printf("data: %+v\n\n", data)
+  fmt.Println("data \\/")
+  pp.Print(data)
   //t1 := comp.NewTeam(data, data.template_map[comp.LATEGAME_3_DWARV_PARTY])
   //t2 := comp.NewTeam(data, data.template_map[comp.LATEGAME_DRAGON_LICH_DWARF_NECRO])
   //battle := comp.BattleMng{
